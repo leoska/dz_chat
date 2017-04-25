@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link href='http://fonts.googleapis.com/css?family=Ubuntu&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+		<link href="main.css" rel="stylesheet" />
+		<!--script src="main.js" defer></script>-->
+		<meta charset="UTF-8">
+	</head>
+	<body>
+		<form id="loginform" class="unauthorized">
+			<input id="login" placeholder="Логин"><br>
+			<input id="password" placeholder="Пароль"><br>
+			<input id="meta1" placeholder="любая информация"><br>
+            <button type="button" onclick="SendMessage()" id="message_btn">Регистрация</button>
+		</form>
+		<output id="messages"></output>
+		<div>
+			<div contenteditable id="input"></div>
+		</div>
+	</body>
+	<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+	<script type="text/javascript">
+		var socket = io.connect('http://93.80.68.163:9000/');
+		function SendMessage() {
+			socket.emit('registr', document.getElementById("login").value, document.getElementById("password").value, );
+			document.getElementById("message_text").value = "";
+    	}
+	</script>
+</html>
