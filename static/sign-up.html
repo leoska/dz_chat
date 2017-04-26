@@ -12,19 +12,21 @@
 			<input id="password" placeholder="Пароль"><br>
 			<input id="meta1" placeholder="Любая информация"><br>
 			<input id="metacode" placeholder="Ключ шифрования"><br>
-            <button type="button" onclick="SendMessage()" id="message_btn">Регистрация</button>
+			<button type="button" onclick="SendMessage()" id="message_btn">Регистрация</button>
 		</form>
-		<output id="messages"></output>
-		<div>
-			<div contenteditable id="input"></div>
-		</div>
 	</body>
+	<script type="text/javascript" src="http://93.80.68.163:3003/bower_components/crypto-js/crypto-js.js"></script>
 	<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 	<script type="text/javascript">
 		var socket = io.connect('http://93.80.68.163:9000/');
 		function SendMessage() {
-			socket.emit('registr', document.getElementById("login").value, document.getElementById("password").value, );
-			document.getElementById("message_text").value = "";
+			var login = document.getElementById("login").value;
+			var pass = document.getElementById("password").value;
+			var meta1 = document.getElementById("meta1").value;
+			var metacode = document.getElementById("metacode").value;
+			var encrypted = CryptoJS.AES.encrypt(meta1, metacode);
+			socket.emit('registr', login, pass, encrypted.toString());
+			//document.getElementById("message_text").value = "";
     	}
 	</script>
 </html>

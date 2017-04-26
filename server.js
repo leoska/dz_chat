@@ -1,6 +1,16 @@
+// Requires
+
 // Modules
 var mysql = require("mysql");
 var path = require('path');
+var CryptoJS = require("crypto-js"); 
+var AES = require("crypto-js/aes");
+
+/*var ciphertext = CryptoJS.AES.encrypt('сообщение', 'секретный ключ');
+console.log(ciphertext.toString());
+var bytes  = CryptoJS.AES.decrypt(ciphertext.toString(), 'секретный ключ');
+var plaintext = bytes.toString(CryptoJS.enc.Utf8);
+console.log(plaintext);*/
 
 // Consts
 const port = 9000;
@@ -66,7 +76,9 @@ io.sockets.on('connection', function(client) {
     console.log('a user connected');
     // Слушатель на событие registr от клиента
     client.on("registr", function(user, pass, meta) {
-      
+      var bytes = CryptoJS.AES.decrypt(meta, "ABC");
+      var plaintext = bytes.toString(CryptoJS.enc.Utf8);
+      console.log(plaintext);
     });
     // Слушатель на событие message от клиента
     client.on('message', function(message) {
@@ -91,9 +103,9 @@ io.sockets.on('connection', function(client) {
   console.log("listening on *:" + port);
 })*/
 
-connection.end(function(err) {
+/*connection.end(function(err) {
     if (err) {
       return console.log(err);
     }  
     console.log("Disconnect");
-});
+});*/
