@@ -64,9 +64,9 @@
 				m += '<td style="background-color: #B5D986;">' + arr[i][1] + '</td><td style="background-color: #b784a7;">' + arr[i][2] + '</td>';
 				m += '<td><input id="inp_' + i + '" placeholder="Ключ"></td><td><button type="button" onclick="ShowMes(' + i + ')">Расшифровать</button></td>';
 				m += '</tr></table></div>';
+				list.innerHTML += m;
+        		list.scrollTop = list.scrollHeight;
 			};
-       		list.innerHTML += m;
-        	list.scrollTop = list.scrollHeight;
 		});
 
 		function ShowMes(i) {
@@ -74,6 +74,7 @@
 			var p1 = obj.meta1;
 			var bytes = CryptoJS.AES.decrypt(p1.toString(), document.getElementById("inp_" + i).value);
 			var str = bytes.toString(CryptoJS.enc.Utf8);
+			alert(str);
 			list.innerHTML += str;
 			list.scrollTop = list.scrollHeight;
 		}
