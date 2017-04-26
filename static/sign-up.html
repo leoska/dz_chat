@@ -5,6 +5,16 @@
 		<link href="main.css" rel="stylesheet" />
 		<!--script src="main.js" defer></script>-->
 		<meta charset="UTF-8">
+		<style type="text/css">
+			.list {
+				height: 300px;
+				border: 1px solid #d4d4d4;
+				overflow-y: scroll;
+				overflow-x: hidden;
+				padding: 5px;
+				width: 70%;
+			}
+		</style>
 	</head>
 	<body>
 		<form id="loginform" class="unauthorized">
@@ -12,21 +22,64 @@
 			<input id="password" placeholder="Пароль"><br>
 			<input id="meta1" placeholder="Любая информация"><br>
 			<input id="metacode" placeholder="Ключ шифрования"><br>
-			<button type="button" onclick="SendMessage()" id="message_btn">Регистрация</button>
+			<button type="button" onclick="SendMessage()" id="message_btn">Регистрация</button>	
+		</form><br><br><br>
+		<form id="userlist" class"unauthorized">
+			<!--Это шаблон для листа-->
+			<button type="button" onclick="RequestUsers()" id="message_btn2">Список users</button>
+			<div class="list" id="list"></div>
 		</form>
 	</body>
-	<script type="text/javascript" src="http://93.80.68.163:3003/bower_components/crypto-js/crypto-js.js"></script>
 	<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+	<script type="text/javascript" src="http://93.80.68.163:3003/bower_components/crypto-js/crypto-js.js"></script>
 	<script type="text/javascript">
+
 		var socket = io.connect('http://93.80.68.163:9000/');
+		var list = document.getElementById("list");
+		var users = new Array();
+
 		function SendMessage() {
 			var login = document.getElementById("login").value;
 			var pass = document.getElementById("password").value;
 			var meta1 = document.getElementById("meta1").value;
 			var metacode = document.getElementById("metacode").value;
 			var encrypted = CryptoJS.AES.encrypt(meta1, metacode);
-			socket.emit('registr', login, pass, encrypted.toString());
+			var obj = {
+				meta1: encrypted.toString()
+			};
+			socket.emit('registr', login, pass, JSON.stringify(obj));
 			//document.getElementById("message_text").value = "";
-    	}
+    	};
+
+		socket.on("listusers", function(arr) {
+			users = arr;
+			var m = "";
+			var func = "";
+			for (i = 0; i < arr.length; i++) {
+				//alert(obj);
+				/*func = 'var meta1 = ' + obj.meta1 + ';';
+				func += 'var bytes = CryptoJS.AES.decrypt(meta1, document.getElementById("inp_' + i +'").value);';
+				func += 'alert(bytes.toString(CryptoJS.enc.Utf8));'*/
+				m = '<div class="user_' + i + '"><table border=1><tr><td style="background-color: #F9F5AE;">' + arr[i][0] + '</td>'; 
+				m += '<td style="background-color: #B5D986;">' + arr[i][1] + '</td><td style="background-color: #b784a7;">' + arr[i][2] + '</td>';
+				m += '<td><input id="inp_' + i + '" placeholder="Ключ"></td><td><button type="button" onclick="ShowMes(' + i + ')">Расшифровать</button></td>';
+				m += '</tr></table></div>';
+			};
+       		list.innerHTML += m;
+        	list.scrollTop = list.scrollHeight;
+		});
+
+		function ShowMes(i) {
+			obj = JSON.parse(users[i][2]);
+			var p1 = obj.meta1;
+			var bytes = CryptoJS.AES.decrypt(p1.toString(), document.getElementById("inp_" + i).value);
+			var str = bytes.toString(CryptoJS.enc.Utf8);
+			list.innerHTML += str;
+			list.scrollTop = list.scrollHeight;
+		}
+
+		function RequestUsers() {
+			socket.emit("requestlist");
+		};
 	</script>
 </html>

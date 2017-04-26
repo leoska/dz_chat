@@ -1,6 +1,4 @@
-// Requires
-
-// Modules
+// Modules & Requires
 var mysql = require("mysql");
 var path = require('path');
 var CryptoJS = require("crypto-js"); 
@@ -24,15 +22,66 @@ var connection = mysql.createConnection({
 });
 
 connection.connect(function(error) {
-  if (error)
-    console.log("Error connect to DB " + error);
-  else
+    if (error) {
+        console.log();
+        console.log('The following error occured while trying to connect to MySQL ' + error.message);
+        return;
+    }
+    console.log();
     console.log("Connected to DB as id " + connection.threadId);
 });
 
+// Functions for work with DB
+var sql_stmt = "";
+
+function listUsers() {
+    sql_stmt = "SELECT * FROM users;";
+
+    connection.query(sql_stmt, function(err, rows) {
+        console.log();
+        console.log("Users Listing");
+        console.log();
+
+        console.table(rows);
+
+        console.log("Total rows returned: " + rows.length);
+    });
+};
+
+function addRecord(name, pass, meta) {
+
+    sql_stmt = "INSERT INTO users(name,password,metadata) VALUES (?,?,?)";
+
+    var values = [name, pass, meta];
+
+    sql_stmt = mysql.format(sql_stmt, values);
+
+    connection.query(sql_stmt, function (error, result) {
+        if (error) {
+            console.log('The following error occured while trying to insert a new record ' + error.message);
+        }
+        console.log();
+        console.log('Created new user with id ' + result.insertId);
+    });
+}
+
+function getRecord(c) {
+  var arr = new Array();
+  sql_stmt = "SELECT * FROM users";
+  connection.query(sql_stmt, function (err, results, fields) {
+    if (err) {
+      console.log('The following error occured while trying select all records ' + error.message);
+    }
+    for (i = 0; i < results.length; i++) {
+      arr.push([results[i].name, results[i].password, results[i].metadata]);
+    }
+    c.emit("listusers", arr);
+  });
+}
+
 // Options
 var options = {
-  'log level': 0
+  "log level": 0
 };
 
 // Launch Web-Site
@@ -72,16 +121,24 @@ app.get('/', function(req, res) {
 });*/
 
 // Вешаем слушатели
-io.sockets.on('connection', function(client) {
+io.sockets.on('connection', function (client) {
+    // Здесь нужно смотреть, новый клиент или нет.
     console.log('a user connected');
-    // Слушатель на событие registr от клиента
-    client.on("registr", function(user, pass, meta) {
-      var bytes = CryptoJS.AES.decrypt(meta, "ABC");
-      var plaintext = bytes.toString(CryptoJS.enc.Utf8);
-      console.log(plaintext);
+
+    client.on("requestlist", function() {
+      getRecord(client);
     });
+
+    // Слушатель на событие registr от клиента
+    client.on("registr", function (name, pass, meta) {
+      addRecord(name, pass, meta);
+      /*var bytes = CryptoJS.AES.decrypt(meta, "ABC");
+      var plaintext = bytes.toString(CryptoJS.enc.Utf8);
+      console.log(plaintext);*/
+    });
+
     // Слушатель на событие message от клиента
-    client.on('message', function(message) {
+    client.on('message', function (message) {
         try {
             console.log('message: ' + message);
             //посылаем сообщение себе
@@ -94,7 +151,7 @@ io.sockets.on('connection', function(client) {
         }
     });
     
-    client.once('disconnect', function() {
+    client.once('disconnect', function () {
       console.log("a user disconnect");
     })
 });
